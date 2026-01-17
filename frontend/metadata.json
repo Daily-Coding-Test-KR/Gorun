@@ -1,0 +1,5 @@
+{
+  "name": "GoMaster Daily",
+  "description": "A clean, minimalist mobile app for daily Go (Golang) learning with AI-powered concepts and coding challenges.",
+  "requestFramePermissions": []
+}
