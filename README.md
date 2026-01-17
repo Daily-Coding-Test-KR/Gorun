@@ -143,3 +143,5 @@ PORT=8080  # 기본값
 ---
 
 Made with 💙 for Go learners
+
+Follow on X: [@Rayxxxxn](https://x.com/Rayxxxxn)
