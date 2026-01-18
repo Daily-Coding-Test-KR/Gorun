@@ -46,6 +46,8 @@ func main() {
 	mux.HandleFunc("GET /api/categories", h.GetCategories)
 	mux.HandleFunc("POST /api/run", h.RunCode)
 	mux.HandleFunc("POST /api/submit", h.SubmitSolution)
+	mux.HandleFunc("GET /api/coding-tests", h.GetCodingTests)
+	mux.HandleFunc("GET /api/coding-tests/{day}", h.GetCodingTestsByDay)
 
 	// Apply middlewares
 	handler := corsMiddleware(loggingMiddleware(mux))
@@ -57,19 +59,21 @@ func main() {
 	}
 
 	fmt.Printf(`
-╔══════════════════════════════════════════════╗
-║       GoMaster Daily - Backend Server        ║
-╠══════════════════════════════════════════════╣
-║  🚀 Server running on http://localhost:%s  ║
-║                                              ║
-║  📚 API Endpoints:                           ║
-║    GET  /api/health         - Health check   ║
-║    GET  /api/lessons/{day}  - Get lesson     ║
-║    GET  /api/concepts       - All concepts   ║
-║    GET  /api/categories     - Categories     ║
-║    POST /api/run            - Run code       ║
-║    POST /api/submit         - Submit answer  ║
-╚══════════════════════════════════════════════╝
+╔═══════════════════════════════════════════════════════╗
+║         GoMaster Daily - Backend Server               ║
+╠═══════════════════════════════════════════════════════╣
+║  Server running on http://localhost:%s               ║
+║                                                       ║
+║  API Endpoints:                                       ║
+║    GET  /api/health              - Health check       ║
+║    GET  /api/lessons/{day}       - Get lesson         ║
+║    GET  /api/concepts            - All concepts       ║
+║    GET  /api/categories          - Categories         ║
+║    POST /api/run                 - Run code           ║
+║    POST /api/submit              - Submit answer      ║
+║    GET  /api/coding-tests        - All coding tests   ║
+║    GET  /api/coding-tests/{day}  - Tests by day       ║
+╚═══════════════════════════════════════════════════════╝
 `, port)
 
 	log.Fatal(http.ListenAndServe(":"+port, handler))

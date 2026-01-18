@@ -150,3 +150,30 @@ func (h *Handler) HealthCheck(w http.ResponseWriter, r *http.Request) {
 		"version": "1.0.0",
 	})
 }
+
+// GetCodingTests handles GET /api/coding-tests
+func (h *Handler) GetCodingTests(w http.ResponseWriter, r *http.Request) {
+	platform := r.URL.Query().Get("platform")
+
+	var tests []models.CodingTest
+	if platform != "" {
+		tests = h.lessonService.GetCodingTestsByPlatform(platform)
+	} else {
+		tests = h.lessonService.GetAllCodingTests()
+	}
+
+	writeSuccess(w, tests)
+}
+
+// GetCodingTestsByDay handles GET /api/coding-tests/{day}
+func (h *Handler) GetCodingTestsByDay(w http.ResponseWriter, r *http.Request) {
+	dayStr := r.PathValue("day")
+	day, err := strconv.Atoi(dayStr)
+	if err != nil || day < 1 {
+		writeError(w, http.StatusBadRequest, "유효하지 않은 day 파라미터입니다")
+		return
+	}
+
+	tests := h.lessonService.GetCodingTestsByDay(day)
+	writeSuccess(w, tests)
+}

@@ -54,6 +54,20 @@ export interface CodeExecutionResult {
   isCorrect?: boolean;
 }
 
+export interface CodingTest {
+  id: number;
+  day: number;
+  title: string;
+  platform: 'programmers' | 'baekjoon';
+  problemId: string;
+  url: string;
+  difficulty: string;
+  category: string;
+  description: string;
+  tags: string[];
+  hint: string;
+}
+
 export interface ApiResponse<T> {
   success: boolean;
   data?: T;
@@ -195,5 +209,39 @@ export async function checkHealth(): Promise<boolean> {
     return result.success;
   } catch {
     return false;
+  }
+}
+
+export async function fetchCodingTestsByDay(day: number): Promise<CodingTest[]> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/coding-tests/${day}`);
+    const result: ApiResponse<CodingTest[]> = await response.json();
+
+    if (result.success && result.data) {
+      return result.data;
+    }
+    return [];
+  } catch (error) {
+    console.error('Failed to fetch coding tests:', error);
+    return [];
+  }
+}
+
+export async function fetchAllCodingTests(platform?: string): Promise<CodingTest[]> {
+  try {
+    const url = platform
+      ? `${API_BASE_URL}/coding-tests?platform=${platform}`
+      : `${API_BASE_URL}/coding-tests`;
+
+    const response = await fetch(url);
+    const result: ApiResponse<CodingTest[]> = await response.json();
+
+    if (result.success && result.data) {
+      return result.data;
+    }
+    return [];
+  } catch (error) {
+    console.error('Failed to fetch coding tests:', error);
+    return [];
   }
 }

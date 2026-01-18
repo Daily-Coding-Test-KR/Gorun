@@ -2,8 +2,13 @@ import React, { useState, useEffect } from 'react';
 import Dashboard from './components/Dashboard';
 import ConceptCard from './components/ConceptCard';
 import CodeEditor from './components/CodeEditor';
-import { ViewState, DailyLesson } from './types';
+import CodingTestCard from './components/CodingTestCard';
+import CodingTestSolver from './components/CodingTestSolver';
+import { DailyLesson, CodingTest } from './types';
+
+type ViewState = 'dashboard' | 'concept' | 'editor' | 'codingTest' | 'codingTestSolver';
 import { fetchDailyLesson, checkHealth } from './services/api';
+import { getCodingTestsByDay } from './data/codingTests';
 import { generateDailyContent } from './services/geminiService';
 import { loadProgress, completeDay, UserProgress } from './services/storage';
 
@@ -12,6 +17,8 @@ const App: React.FC = () => {
   const [progress, setProgress] = useState<UserProgress>(loadProgress);
   const [selectedDay, setSelectedDay] = useState<number>(1);
   const [lesson, setLesson] = useState<DailyLesson | null>(null);
+  const [codingTests, setCodingTests] = useState<CodingTest[]>([]);
+  const [selectedTest, setSelectedTest] = useState<CodingTest | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [backendAvailable, setBackendAvailable] = useState(false);
 
@@ -57,10 +64,31 @@ const App: React.FC = () => {
     setCurrentView('editor');
   };
 
+  const handleGoToCodingTest = () => {
+    // Get coding tests from hardcoded data
+    const tests = getCodingTestsByDay(selectedDay);
+    setCodingTests(tests);
+    setCurrentView('codingTest');
+  };
+
   const handleCompleteLesson = () => {
     const updatedProgress = completeDay(selectedDay);
     setProgress(updatedProgress);
+    // Navigate to coding test after completing the lesson
+    handleGoToCodingTest();
+  };
+
+  const handleCompleteCodingTest = () => {
     setCurrentView('dashboard');
+  };
+
+  const handleSolveProblem = (test: CodingTest) => {
+    setSelectedTest(test);
+    setCurrentView('codingTestSolver');
+  };
+
+  const handleBackToCodingTest = () => {
+    setCurrentView('codingTest');
   };
 
   const handleBackToDashboard = () => {
@@ -69,6 +97,10 @@ const App: React.FC = () => {
 
   const handleBackToConcept = () => {
     setCurrentView('concept');
+  };
+
+  const handleBackToEditor = () => {
+    setCurrentView('editor');
   };
 
   if (isLoading) {
@@ -105,6 +137,24 @@ const App: React.FC = () => {
           onBack={handleBackToConcept}
           onComplete={handleCompleteLesson}
           isCompleted={progress.completedDays.includes(selectedDay)}
+        />
+      )}
+
+      {currentView === 'codingTest' && (
+        <CodingTestCard
+          day={selectedDay}
+          codingTests={codingTests}
+          onBack={handleBackToEditor}
+          onComplete={handleCompleteCodingTest}
+          onSolve={handleSolveProblem}
+        />
+      )}
+
+      {currentView === 'codingTestSolver' && selectedTest && (
+        <CodingTestSolver
+          test={selectedTest}
+          onBack={handleBackToCodingTest}
+          onComplete={handleCompleteCodingTest}
         />
       )}
     </div>

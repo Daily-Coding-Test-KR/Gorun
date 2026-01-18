@@ -79,3 +79,18 @@ func (s *LessonService) GetCategories() []string {
 	}
 	return categories
 }
+
+// GetCodingTestsByDay returns coding tests for a specific day
+func (s *LessonService) GetCodingTestsByDay(day int) []models.CodingTest {
+	return data.GetCodingTestsByDay(day)
+}
+
+// GetAllCodingTests returns all coding tests
+func (s *LessonService) GetAllCodingTests() []models.CodingTest {
+	return data.GetAllCodingTests()
+}
+
+// GetCodingTestsByPlatform returns coding tests filtered by platform
+func (s *LessonService) GetCodingTestsByPlatform(platform string) []models.CodingTest {
+	return data.GetCodingTestsByPlatform(platform)
+}

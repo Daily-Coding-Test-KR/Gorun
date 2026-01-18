@@ -2,11 +2,11 @@ package runner
 
 import (
 	"bytes"
-	"context"
+	"encoding/json"
 	"fmt"
-	"os"
-	"os/exec"
-	"path/filepath"
+	"io"
+	"net/http"
+	"net/url"
 	"strings"
 	"time"
 
@@ -14,75 +14,105 @@ import (
 	"gomaster-daily/internal/models"
 )
 
-// CodeRunner handles Go code execution
+// CodeRunner handles Go code execution via Go Playground API
 type CodeRunner struct {
-	timeout time.Duration
+	timeout    time.Duration
+	httpClient *http.Client
 }
 
 // NewCodeRunner creates a new CodeRunner with the specified timeout
 func NewCodeRunner(timeout time.Duration) *CodeRunner {
 	return &CodeRunner{
 		timeout: timeout,
+		httpClient: &http.Client{
+			Timeout: timeout,
+		},
 	}
 }
 
-// RunCode executes the provided Go code and returns the result
+// PlaygroundResponse represents the response from Go Playground API
+type PlaygroundResponse struct {
+	Errors string `json:"Errors"`
+	Events []struct {
+		Message string `json:"Message"`
+		Kind    string `json:"Kind"`
+		Delay   int    `json:"Delay"`
+	} `json:"Events"`
+}
+
+// RunCode executes the provided Go code via Go Playground API
 func (r *CodeRunner) RunCode(req models.CodeExecutionRequest) models.CodeExecutionResult {
 	startTime := time.Now()
 
-	// Create a temporary directory for the code
-	tmpDir, err := os.MkdirTemp("", "gomaster-")
+	// Prepare the request to Go Playground
+	formData := url.Values{}
+	formData.Set("version", "2")
+	formData.Set("body", req.Code)
+	formData.Set("withVet", "true")
+
+	httpReq, err := http.NewRequest("POST", "https://go.dev/_/compile", bytes.NewBufferString(formData.Encode()))
 	if err != nil {
 		return models.CodeExecutionResult{
-			Success: false,
-			Error:   "임시 디렉토리 생성 실패: " + err.Error(),
+			Success:  false,
+			Error:    "요청 생성 실패: " + err.Error(),
+			Feedback: "서버 오류가 발생했습니다.",
 		}
 	}
-	defer os.RemoveAll(tmpDir)
+	httpReq.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	// Write the code to a file
-	codePath := filepath.Join(tmpDir, "main.go")
-	if err := os.WriteFile(codePath, []byte(req.Code), 0644); err != nil {
+	resp, err := r.httpClient.Do(httpReq)
+	if err != nil {
 		return models.CodeExecutionResult{
-			Success: false,
-			Error:   "코드 파일 작성 실패: " + err.Error(),
+			Success:  false,
+			Error:    "Go Playground 연결 실패: " + err.Error(),
+			Feedback: "코드 실행 서버에 연결할 수 없습니다.",
+		}
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return models.CodeExecutionResult{
+			Success:  false,
+			Error:    "응답 읽기 실패: " + err.Error(),
+			Feedback: "서버 응답을 처리할 수 없습니다.",
 		}
 	}
 
-	// Create context with timeout
-	ctx, cancel := context.WithTimeout(context.Background(), r.timeout)
-	defer cancel()
+	var pgResp PlaygroundResponse
+	if err := json.Unmarshal(body, &pgResp); err != nil {
+		return models.CodeExecutionResult{
+			Success:  false,
+			Error:    "응답 파싱 실패: " + err.Error(),
+			Feedback: "서버 응답을 처리할 수 없습니다.",
+		}
+	}
 
-	// Run the code
-	cmd := exec.CommandContext(ctx, "go", "run", codePath)
-	var stdout, stderr bytes.Buffer
-	cmd.Stdout = &stdout
-	cmd.Stderr = &stderr
-
-	err = cmd.Run()
 	executionTime := time.Since(startTime).Milliseconds()
 
 	result := models.CodeExecutionResult{
 		ExecutionMs: executionTime,
 	}
 
-	if ctx.Err() == context.DeadlineExceeded {
+	// Check for compilation errors
+	if pgResp.Errors != "" {
 		result.Success = false
-		result.Error = "실행 시간 초과 (5초)"
-		result.Feedback = "코드 실행 시간이 너무 깁니다. 무한 루프가 있는지 확인해주세요."
-		return result
-	}
-
-	if err != nil {
-		result.Success = false
-		result.Output = stderr.String()
-		result.Error = r.parseGoError(stderr.String())
+		result.Error = r.parseGoError(pgResp.Errors)
+		result.Output = pgResp.Errors
 		result.Feedback = r.generateErrorFeedback(result.Error)
 		return result
 	}
 
+	// Collect output from events
+	var outputBuilder strings.Builder
+	for _, event := range pgResp.Events {
+		if event.Kind == "stdout" || event.Kind == "" {
+			outputBuilder.WriteString(event.Message)
+		}
+	}
+
 	result.Success = true
-	result.Output = stdout.String()
+	result.Output = outputBuilder.String()
 
 	// Validate against test cases if day is provided
 	if req.Day > 0 {

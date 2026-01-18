@@ -1,4 +1,4 @@
-export type ViewState = 'dashboard' | 'concept' | 'editor';
+export type ViewState = 'dashboard' | 'concept' | 'editor' | 'codingTest';
 
 export interface Concept {
   id: number;
@@ -69,4 +69,34 @@ export interface CodeExecutionResult {
   totalTests: number;
   feedback: string;
   isCorrect?: boolean;
+}
+
+export interface CodingTest {
+  id: number;
+  day: number;
+  title: string;
+  platform: 'programmers' | 'baekjoon' | 'custom';
+  problemId: string;
+  url: string;
+  difficulty: string;
+  category: string;
+  description: string;
+  tags: string[];
+  hint: string;
+  // New fields for in-app solving
+  problemStatement?: string;
+  inputDescription?: string;
+  outputDescription?: string;
+  examples?: {
+    input: string;
+    output: string;
+    explanation?: string;
+  }[];
+  testCases?: {
+    input: string;
+    expected: string;
+    isHidden: boolean;
+  }[];
+  initialCode?: string;
+  constraints?: string[];
 }

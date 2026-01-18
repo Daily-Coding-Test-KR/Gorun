@@ -78,3 +78,18 @@ type CodeExecutionResult struct {
 	TotalTests   int      `json:"totalTests"`
 	Feedback     string   `json:"feedback"`
 }
+
+// CodingTest represents a real coding test problem from Programmers/Baekjoon
+type CodingTest struct {
+	ID          int      `json:"id"`
+	Day         int      `json:"day"`          // Related day
+	Title       string   `json:"title"`        // Problem title
+	Platform    string   `json:"platform"`     // "programmers" or "baekjoon"
+	ProblemID   string   `json:"problemId"`    // Platform-specific problem ID
+	URL         string   `json:"url"`          // Direct link to the problem
+	Difficulty  string   `json:"difficulty"`   // Level description
+	Category    string   `json:"category"`     // Problem category
+	Description string   `json:"description"`  // Brief description in Korean
+	Tags        []string `json:"tags"`         // Related concepts
+	Hint        string   `json:"hint"`         // Study hint
+}
