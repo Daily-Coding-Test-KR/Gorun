@@ -1,0 +1,39 @@
+/* Global scrollbar styles */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #e2e8f0;
+    /* slate-200 */
+    border-radius: 10px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #cbd5e1;
+    /* slate-300 */
+}
+
+/* Custom scrollbar class for specific containers */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border: 3px solid transparent;
+}
+
+@media (max-width: 640px) {
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+    }
+}

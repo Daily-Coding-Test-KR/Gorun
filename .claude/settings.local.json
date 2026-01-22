@@ -5,7 +5,11 @@
       "Bash(go mod tidy:*)",
       "Bash(go build:*)",
       "Bash(dir /B \"C:\\\\Users\\\\pc\\\\Desktop\\\\Golang\\\\gomaster-daily\")",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nfeat: Add complete Day 1-40 coding tests with function-based approach\n\n- Implement 80 coding problems \\(2 per day\\) compatible with Go Playground API\n- All problems use function-based approach \\(no stdin/fmt.Scan\\)\n- Add CodingTestCard and CodingTestSolver components\n- Add Docker and Cloud Run deployment configuration\n- Update backend with coding test API endpoints\n\nCurriculum:\n- Day 1-5: Basics \\(Hello World, operators, fmt\\)\n- Day 6-7: Strings \\(length, reverse, palindrome\\)\n- Day 8-12: Control flow \\(if, switch, for, break/continue\\)\n- Day 13-17: Functions \\(recursion, closures, defer\\)\n- Day 18-22: Arrays, Slices, Maps\n- Day 23-25: Structs and methods\n- Day 26-27: Pointers\n- Day 28-30: Interfaces\n- Day 31-32: Error handling\n- Day 33-37: Concurrency \\(goroutines, channels, mutex\\)\n- Day 38-40: Packages and JSON\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(gcloud --version:*)",
+      "Bash(gcloud builds submit:*)",
+      "Bash(gcloud run services list:*)"
     ]
   }
 }

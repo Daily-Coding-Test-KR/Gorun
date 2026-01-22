@@ -1,11 +1,14 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { CodingTest } from '../types';
 import { ArrowLeft, Play, Send, CheckCircle, XCircle, Loader2, Lightbulb, ChevronDown, ChevronUp, Code, FileText } from 'lucide-react';
+import { runCode as apiRunCode } from '../services/api';
 
 interface CodingTestSolverProps {
   test: CodingTest;
   onBack: () => void;
   onComplete: () => void;
+  onNext?: () => void;
+  hasNext?: boolean;
 }
 
 interface TestResult {
@@ -27,6 +30,8 @@ const CodingTestSolver: React.FC<CodingTestSolverProps> = ({
   test,
   onBack,
   onComplete,
+  onNext,
+  hasNext = false,
 }) => {
   const [code, setCode] = useState(test.initialCode || `package main
 
@@ -38,31 +43,37 @@ func main() {
 `);
   const [isRunning, setIsRunning] = useState(false);
   const [result, setResult] = useState<ExecutionResult | null>(null);
-  const [showHint, setShowHint] = useState(false);
   const [activeTab, setActiveTab] = useState<'problem' | 'code'>('code');
+  const [showHint, setShowHint] = useState(false);
+
+  // Reset state when test changes
+  useEffect(() => {
+    setCode(test.initialCode || `package main
+
+import "fmt"
+
+func main() {
+    // 여기에 코드를 작성하세요
+}
+`);
+    setResult(null);
+    setShowHint(false);
+    setActiveTab('code');
+  }, [test]);
 
   const runCode = useCallback(async (isSubmit: boolean = false) => {
     setIsRunning(true);
     setResult(null);
 
     try {
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL || 'https://gomaster-backend-fh3ewfxxvq-du.a.run.app/api'}/run`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ code, day: test.day }),
-        }
-      );
+      const data = await apiRunCode(code, test.day);
 
-      const data = await response.json();
-
-      if (!data.success) {
-        setResult({ success: false, output: '', error: data.error || '실행 중 오류가 발생했습니다.', testResults: [] });
+      if (!data.success && !data.error) {
+        setResult({ success: false, output: '', error: '실행 중 오류가 발생했습니다.', testResults: [] });
         return;
       }
 
-      const output = data.data?.output || '';
+      const output = data.output || '';
       let testResults: TestResult[] = [];
       
       if (isSubmit && test.testCases) {
@@ -75,11 +86,7 @@ func main() {
         }));
       }
 
-      setResult({ success: !data.data?.error, output, error: data.data?.error, testResults });
-
-      if (testResults.length > 0 && testResults.every((r) => r.passed)) {
-        setTimeout(() => onComplete(), 2000);
-      }
+      setResult({ success: data.success, output, error: data.error, testResults });
     } catch {
       setResult({ success: false, output: '', error: '서버에 연결할 수 없습니다.', testResults: [] });
     } finally {
@@ -267,6 +274,27 @@ func main() {
                       <div>
                         <p className="font-bold text-green-800">실행 완료</p>
                         <pre className="text-sm text-green-700 mt-2 whitespace-pre-wrap font-mono bg-green-100 p-2 rounded-lg">{result.output || '(출력 없음)'}</pre>
+                      </div>
+                    </div>
+                  )}
+                  {result.testResults.length > 0 && result.testResults.every(r => r.passed) && (
+                    <div className="mt-4 p-4 bg-white/50 rounded-xl flex flex-col gap-3">
+                      <p className="text-sm font-medium text-green-800">모든 테스트를 통과했습니다!</p>
+                      <div className="flex gap-2">
+                        {hasNext && onNext && (
+                          <button
+                            onClick={onNext}
+                            className="flex-1 bg-green-600 text-white py-2.5 rounded-lg font-bold text-sm hover:bg-green-700 transition-colors"
+                          >
+                            다음 문제 풀기
+                          </button>
+                        )}
+                        <button
+                          onClick={onBack}
+                          className="flex-1 border-2 border-green-200 text-green-700 py-2.5 rounded-lg font-bold text-sm hover:bg-green-100 transition-colors"
+                        >
+                          문제 목록으로
+                        </button>
                       </div>
                     </div>
                   )}

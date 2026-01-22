@@ -38,7 +38,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onStart, progress, onProgressUpda
   };
 
   return (
-    <div className="flex flex-col h-full bg-white relative animate-fade-in">
+    <div className="flex flex-col h-full bg-white relative animate-fade-in overflow-y-auto custom-scrollbar">
       {/* Profile Modal */}
       {showProfileModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-6">

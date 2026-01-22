@@ -32,7 +32,7 @@ func main() {
 	{
 		ID: 2, Day: 2, ConceptID: 2, Title: "변수 선언 연습",
 		Difficulty:  "easy",
-		Description: "이름(string), 나이(int), 키(float64) 변수를 선언하고 값을 할당한 뒤, 모두 출력하세요.",
+		Description: "이름(string)은 \"Gopher\", 나이(int)는 10, 키(float64)는 175.5로 변수를 선언하고 값을 할당한 뒤, 모두 출력하세요.",
 		InitialCode: `package main
 
 import "fmt"

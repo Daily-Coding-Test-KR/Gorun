@@ -19,6 +19,7 @@ const App: React.FC = () => {
   const [lesson, setLesson] = useState<DailyLesson | null>(null);
   const [codingTests, setCodingTests] = useState<CodingTest[]>([]);
   const [selectedTest, setSelectedTest] = useState<CodingTest | null>(null);
+  const [currentTestIndex, setCurrentTestIndex] = useState<number>(-1);
   const [isLoading, setIsLoading] = useState(false);
   const [backendAvailable, setBackendAvailable] = useState(false);
 
@@ -84,7 +85,18 @@ const App: React.FC = () => {
 
   const handleSolveProblem = (test: CodingTest) => {
     setSelectedTest(test);
+    const index = codingTests.findIndex(t => t.id === test.id);
+    setCurrentTestIndex(index);
     setCurrentView('codingTestSolver');
+  };
+
+  const handleNextProblem = () => {
+    if (currentTestIndex < codingTests.length - 1) {
+      const nextIndex = currentTestIndex + 1;
+      setCurrentTestIndex(nextIndex);
+      setSelectedTest(codingTests[nextIndex]);
+      // The view is already 'codingTestSolver', but we update the selected test
+    }
   };
 
   const handleBackToCodingTest = () => {
@@ -155,6 +167,8 @@ const App: React.FC = () => {
           test={selectedTest}
           onBack={handleBackToCodingTest}
           onComplete={handleCompleteCodingTest}
+          onNext={handleNextProblem}
+          hasNext={currentTestIndex < codingTests.length - 1}
         />
       )}
     </div>
